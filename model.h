@@ -55,11 +55,10 @@ private:
     {
         // Read file via ASSIMP
         Assimp::Importer importer;
-        const aiScene* sceneaux = importer.ReadFile(path, aiProcess_Triangulate           |
-                                                       aiProcess_FlipUVs               |
-                                                       aiProcess_JoinIdenticalVertices |
-                                                       aiProcess_GenSmoothNormals);
-
+        importer.ReadFile(path, aiProcess_Triangulate           |
+                                aiProcess_FlipUVs               |
+                                aiProcess_JoinIdenticalVertices |
+                                aiProcess_GenSmoothNormals);
         const aiScene* scene = importer.ApplyPostProcessing(aiProcess_CalcTangentSpace);
         // Check for errors
         if(!scene || scene->mFlags == AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) // if is Not Zero
@@ -98,8 +97,10 @@ private:
         // Data to fill
         vector<Vertex> vertices;
         vector<GLuint> indices;
-        vector<Texture> textures;
+//        vector<Texture> textures;
+        Textures textures;
         float shininess;
+        aiColor3D ambient,diffuse,specular;
 
         // Walk through each of the mesh's vertices
         for(GLuint i = 0; i < mesh->mNumVertices; i++)
@@ -113,10 +114,15 @@ private:
             vector.z = mesh->mVertices[i].z;
             vertex.Position = vector;
             // Normals
+            if(mesh->mNormals){
             vector.x = mesh->mNormals[i].x;
             vector.y = mesh->mNormals[i].y;
             vector.z = mesh->mNormals[i].z;
             vertex.Normal = vector;
+            }
+            else{
+                vertex.Normal=glm::vec3(0.0f);
+            }
             if(mesh->mTangents){
                 vector.x = mesh->mTangents[i].x;
                 vector.y = mesh->mTangents[i].y;
@@ -159,8 +165,10 @@ private:
                 indices.push_back(face.mIndices[j]);
         }
         // Process materials
-        if(mesh->mMaterialIndex >= 0)
-        {
+
+   /* A mesh does use only a single material. If an imported model uses multiple materials,
+    * the import splits up the mesh. Use this value as index into the scene's material list.
+    */
             aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
             // We assume a convention for sampler names in the shaders. Each diffuse texture should be named
             // as 'texture_diffuseN' where N is a sequential number ranging from 1 to MAX_SAMPLER_NUMBER.
@@ -171,30 +179,33 @@ private:
             // actually materialN.diffuse, materialN.specular,materialN.normal
 
             // 1. Diffuse maps
-            vector<Texture> diffuseMaps = this->loadMaterialTextures(material, aiTextureType_DIFFUSE, DIFFUSE);
-            textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
-            // 2. Specular maps
-            vector<Texture> specularMaps = this->loadMaterialTextures(material, aiTextureType_SPECULAR, SPECULAR);
-            textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
-            vector<Texture> normalMaps = this->loadMaterialTextures(material,aiTextureType_HEIGHT,NORMAL);
-            textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
-            /*aiString str;
-            material->Get(AI_MATKEY_TEXTURE_NORMALS,&str);
-            Texture texture;
-            texture.id = TextureFromFile(str.C_Str(), this->directory);
-            texture.type = aiTextureType_NORMALS;
-            texture.path = str;
-            textures.push_back(texture);
-            this->textures_loaded.push_back(texture);*/
 
+
+            textures.diffuse=this->loadMaterialTextures(material, aiTextureType_DIFFUSE, DIFFUSE);
+            textures.specular=this->loadMaterialTextures(material, aiTextureType_SPECULAR, SPECULAR);
+            textures.normal=this->loadMaterialTextures(material,aiTextureType_HEIGHT,NORMAL);
+            //vector<Texture> diffuseMaps = this->loadMaterialTextures(material, aiTextureType_DIFFUSE, DIFFUSE);
+            //textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
+            // 2. Specular maps
+            //vector<Texture> specularMaps = this->loadMaterialTextures(material, aiTextureType_SPECULAR, SPECULAR);
+            //textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
+            //vector<Texture> normalMaps = this->loadMaterialTextures(material,aiTextureType_HEIGHT,NORMAL);
+            //textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
             //shininess
             material->Get(AI_MATKEY_SHININESS,shininess);
-        }
+
+            material->Get(AI_MATKEY_COLOR_AMBIENT,ambient);
+            material->Get(AI_MATKEY_COLOR_DIFFUSE,diffuse);
+            material->Get(AI_MATKEY_COLOR_SPECULAR,specular);
+//        }
 
 
         // Return a mesh object created from the extracted mesh data
         //shininess in this library is from 0.0f-1000.0f
-        return Mesh(vertices, indices, textures,shininess*256.0/1000.0);
+        return Mesh(vertices, indices, textures,shininess*256.0/1000.0,
+                    glm::vec3(ambient.r,ambient.g,ambient.b),
+                    glm::vec3(diffuse.r,diffuse.g,diffuse.b),
+                    glm::vec3(specular.r,specular.g,specular.b));
     }
 
     // Checks all material textures of a given type and loads the textures if they're not loaded yet.

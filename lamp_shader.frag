@@ -4,8 +4,15 @@ struct Material {
     sampler2D diffuse;
     sampler2D specular;
     sampler2D normal;
+
+    vec3 v3ambient;
+    vec3 v3diffuse;
+    vec3 v3specular;
+
     float shininess;
 };
+
+
 
 in vec3 FragPos;
 in vec3 Normal;

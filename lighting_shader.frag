@@ -4,6 +4,11 @@ struct Material {
     sampler2D diffuse;
     sampler2D specular;
     sampler2D normal;
+
+    vec3 v3ambient;
+    vec3 v3diffuse;
+    vec3 v3specular;
+
     float shininess;
 };
 
@@ -63,32 +68,31 @@ uniform Material material1;
 
 uniform bool bump;
 
-vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir);
-vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir);
-vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir);
-vec3 CalcBumpedNormal(vec3 normal,vec3 tangent,vec3 bitangent);
+vec3 CalcDirLight(Material material,DirLight light, vec3 normal, vec3 viewDir);
+vec3 CalcPointLight(Material material,PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir);
+vec3 CalcSpotLight(Material material,SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir);
+vec3 CalcBumpedNormal(Material material,vec3 normal,vec3 tangent,vec3 bitangent);
 void main()
 {
     vec3 norm;
-    //if(bump && (Tangent!=vec3(0.0f,0.0f,0.0f))&&(Bitangent!=vec3(0.0f,0.0f,0.0f))){
     if(bump){
-        norm = CalcBumpedNormal(Normal,Tangent,Bitangent);
+        norm = CalcBumpedNormal(material1,Normal,Tangent,Bitangent);
     }
     else{
         norm = normalize(Normal);
     }
 
     vec3 viewDir = normalize(viewPos - FragPos);
-    vec3 result=CalcDirLight(dirLight, norm, viewDir);
+    vec3 result=CalcDirLight(material1,dirLight, norm, viewDir);
     for(int i=0;i<POINTLIGHTS;i++){
-     result += CalcPointLight(pointLight[i],norm,FragPos,viewDir);
+     result += CalcPointLight(material1,pointLight[i],norm,FragPos,viewDir);
     }
-    result += CalcSpotLight(spotLight,norm,FragPos,viewDir);
+    result += CalcSpotLight(material1,spotLight,norm,FragPos,viewDir);
     color = vec4(result,1.0f);
 }
 // Calculates the color when using a directional light.
 #define SHININESS 128.0f
-vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir)
+vec3 CalcDirLight(Material material,DirLight light, vec3 normal, vec3 viewDir)
 {
     vec3 lightDir = normalize(-light.direction);
     // Diffuse shading
@@ -97,13 +101,13 @@ vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir)
     vec3 reflectDir = reflect(-lightDir, normal);
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), material1.shininess);
     // Combine results
-    vec3 ambient = light.ambient * vec3(texture(material1.diffuse, TexCoords));
-    vec3 diffuse = light.diffuse * diff * vec3(texture(material1.diffuse, TexCoords));
-    vec3 specular = light.specular * spec * vec3(texture(material1.specular, TexCoords));
-    //vec3 specular = light.specular * spec * vec3(0.0f);
-    return (ambient + diffuse + specular);
+    vec3 result=vec3(0.0f);
+    result += light.ambient * vec3(texture(material.diffuse, TexCoords))*material.v3ambient;
+    result += light.diffuse * diff * (vec3(texture(material.diffuse, TexCoords)))*material.v3diffuse;
+    result += light.specular * spec * (vec3(texture(material.specular, TexCoords)))*material.v3specular;
+    return (result);
 }
-vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
+vec3 CalcPointLight(Material material,PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
 {
     vec3 lightDir = normalize(light.position - fragPos);
     // Diffuse shading
@@ -116,17 +120,16 @@ vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
     float attenuation = 1.0f / (light.constant + light.linear * distance +
                              light.quadratic * (distance * distance));
     // Combine results
-    vec3 ambient  = light.ambient  * vec3(texture(material1.diffuse, TexCoords));
-    vec3 diffuse  = light.diffuse  * diff * vec3(texture(material1.diffuse, TexCoords));
-    vec3 specular = light.specular * spec * vec3(texture(material1.specular, TexCoords));
-    ambient  *= attenuation;
-    diffuse  *= attenuation;
-    specular *= attenuation;
-    return (ambient + diffuse + specular);
+    vec3 result=vec3(0.0f);
+    result += light.ambient * vec3(texture(material.diffuse, TexCoords))*material.v3ambient;
+    result += light.diffuse * diff * (vec3(texture(material.diffuse, TexCoords)))*material.v3diffuse;
+    result += light.specular * spec * (vec3(texture(material.specular, TexCoords)))*material.v3specular;
+    result *= attenuation;
+    return (result);
 }
 
 
-vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
+vec3 CalcSpotLight(Material material,SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
 {
     vec3 lightDir = normalize(light.position - fragPos);
     // Diffuse shading
@@ -142,25 +145,29 @@ vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
     float epsilon = light.cutOff - light.outerCutOff;
     float intensity = clamp((theta - light.outerCutOff) / epsilon, 0.0, 1.0);
     // Combine results
-    vec3 ambient = light.ambient * vec3(texture(material1.diffuse, TexCoords));
-    vec3 diffuse = light.diffuse * diff * vec3(texture(material1.diffuse, TexCoords));
-    vec3 specular = light.specular * spec * vec3(texture(material1.specular, TexCoords));
-    ambient *= attenuation * intensity;
-    diffuse *= attenuation * intensity;
-    specular *= attenuation * intensity;
-    return (ambient + diffuse + specular);
+    vec3 result=vec3(0.0f);
+    result += light.ambient * vec3(texture(material.diffuse, TexCoords))*material.v3ambient;
+    result += light.diffuse * diff * (vec3(texture(material.diffuse, TexCoords)))*material.v3diffuse;
+    result += light.specular * spec * (vec3(texture(material.specular, TexCoords)))*material.v3specular;
+    result *= attenuation * intensity;
+
+    return (result);
 }
-vec3 CalcBumpedNormal(vec3 _normal,vec3 _tangent,vec3 _bitangent)
+vec3 CalcBumpedNormal(Material material,vec3 _normal,vec3 _tangent,vec3 _bitangent)
 {
     vec3 normal = normalize(_normal);
+    /*
+    if(!material.has_normal) return normal;*/
+
     vec3 tangent = normalize(_tangent);
     tangent = normalize(tangent - dot(tangent, Normal) * Normal);
     vec3 bitangent = cross(tangent, normal);
-    vec3 BumpMapNormal = texture(material1.normal, TexCoords).xyz;
+    vec3 BumpMapNormal = texture(material.normal, TexCoords).xyz;
     BumpMapNormal = 2.0 * BumpMapNormal - vec3(1.0, 1.0, 1.0);
     vec3 NewNormal;
     mat3 TBN = mat3(tangent, bitangent, normal);
     NewNormal = TBN * BumpMapNormal;
     NewNormal = normalize(NewNormal);
     return -NewNormal;//why??, light looks inverted if I dont do this
+    //return NewNormal;
 }

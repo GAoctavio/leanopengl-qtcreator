@@ -84,6 +84,7 @@ int main()
 
     // Load models
     Model ourModel((GLchar*)WORKING_DIR_FILE("Nanosuit/nanosuit.obj"));
+    //Model ourModel((GLchar*)WORKING_DIR_FILE("CartoonGuy/CartoonGuy_v1.1.obj"));
     Model lightModel((GLchar*)WORKING_DIR_FILE("Lightbulb/energy_saver-cycles.obj"));
 
     // Draw in wireframe
@@ -128,23 +129,26 @@ int main()
             glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
             glUniform3f(glGetUniformLocation(shader.Program,"viewPos"),camera.Position.x,camera.Position.y,camera.Position.z);
 
-            glUniform3f(glGetUniformLocation(shader.Program,"dirLight.direction"),0.0f,0.0f,-1.0f);
-            glUniform3f(glGetUniformLocation(shader.Program, "dirLight.ambient"), 0.5f, 0.5f, 0.5f);
-            glUniform3f(glGetUniformLocation(shader.Program, "dirLight.diffuse"), 0.8f, 0.8f, 0.8f);
-            glUniform3f(glGetUniformLocation(shader.Program, "dirLight.specular"), 1.0f, 1.0f, 1.0f);
+//            glUniform3f(glGetUniformLocation(shader.Program,"dirLight.direction"),0.0f,0.0f,-1.0f);
+//            glUniform3f(glGetUniformLocation(shader.Program, "dirLight.ambient"), 0.8f, 0.8f, 0.8f);
+//            glUniform3f(glGetUniformLocation(shader.Program, "dirLight.diffuse"), 0.8f, 0.8f, 0.8f);
+//            glUniform3f(glGetUniformLocation(shader.Program, "dirLight.specular"), 1.0f, 1.0f, 1.0f);
+            glUniform3f(glGetUniformLocation(shader.Program, "dirLight.ambient"), 0.4f, 0.4f, 0.4f);
+            glUniform3f(glGetUniformLocation(shader.Program, "dirLight.diffuse"), 0.4f, 0.4f, 0.4f);
+            glUniform3f(glGetUniformLocation(shader.Program, "dirLight.specular"), 0.4f, 0.4f, 0.4f);
 
             glUniform3f(glGetUniformLocation(shader.Program, "pointLight[0].position"),lightPos.x,lightPos.y,lightPos.z);
             glUniform3f(glGetUniformLocation(shader.Program, "pointLight[0].ambient"), 0.05f, 0.05f, 0.05f);
-            glUniform3f(glGetUniformLocation(shader.Program, "pointLight[0].diffuse"), 1.0f, 1.0f, 1.0f);
-            glUniform3f(glGetUniformLocation(shader.Program, "pointLight[0].specular"), 1.0f, 1.0f, 1.0f);
+            glUniform3f(glGetUniformLocation(shader.Program, "pointLight[0].diffuse"), 0.4f, 0.4f, 0.4f);
+            glUniform3f(glGetUniformLocation(shader.Program, "pointLight[0].specular"), 0.4f, 0.4f, 0.4f);
             glUniform1f(glGetUniformLocation(shader.Program, "pointLight[0].constant"), 1.0f);
             glUniform1f(glGetUniformLocation(shader.Program, "pointLight[0].linear"), 0.009);
             glUniform1f(glGetUniformLocation(shader.Program, "pointLight[0].quadratic"), 0.0032);
 
             glUniform3f(glGetUniformLocation(shader.Program, "pointLight[1].position"),-1.7f, 0.9f, 1.0f);
             glUniform3f(glGetUniformLocation(shader.Program, "pointLight[1].ambient"), 0.05f, 0.05f, 0.05f);
-            glUniform3f(glGetUniformLocation(shader.Program, "pointLight[1].diffuse"), 1.0f, 1.0f, 1.0f);
-            glUniform3f(glGetUniformLocation(shader.Program, "pointLight[1].specular"), 1.0f, 1.0f, 1.0f);
+            glUniform3f(glGetUniformLocation(shader.Program, "pointLight[1].diffuse"), 0.4f, 0.4f, 0.4f);
+            glUniform3f(glGetUniformLocation(shader.Program, "pointLight[1].specular"), 0.4f, 0.4f, 0.4f);
             glUniform1f(glGetUniformLocation(shader.Program, "pointLight[1].constant"), 1.0f);
             glUniform1f(glGetUniformLocation(shader.Program, "pointLight[1].linear"), 0.009);
             glUniform1f(glGetUniformLocation(shader.Program, "pointLight[1].quadratic"), 0.0032);
@@ -153,7 +157,7 @@ int main()
             glUniform3f(glGetUniformLocation(shader.Program, "spotLight.position"), camera.Position.x, camera.Position.y, camera.Position.z);
             glUniform3f(glGetUniformLocation(shader.Program, "spotLight.direction"), camera.Front.x, camera.Front.y, camera.Front.z);
             glUniform3f(glGetUniformLocation(shader.Program, "spotLight.ambient"), 0.0f, 0.0f, 0.0f);
-            glUniform3f(glGetUniformLocation(shader.Program, "spotLight.diffuse"), 1.0f, 1.0f, 1.0f);
+            glUniform3f(glGetUniformLocation(shader.Program, "spotLight.diffuse"), 0.8f, 0.8f, 0.8f);
             glUniform3f(glGetUniformLocation(shader.Program, "spotLight.specular"), 1.0f, 1.0f, 1.0f);
             glUniform1f(glGetUniformLocation(shader.Program, "spotLight.constant"), 1.0f);
             glUniform1f(glGetUniformLocation(shader.Program, "spotLight.linear"), 0.09);

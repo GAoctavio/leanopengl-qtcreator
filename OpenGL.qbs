@@ -13,6 +13,9 @@ CppApplication {
         "Box/tore_card.png",
         "Box/tore_cardboard.jpg",
         "Box/white.jpg",
+        "CartoonGuy/CartoonGuy_v1.1.mtl",
+        "FuturisticCar/Futuristic_Car.mtl",
+        "FuturisticCar/Futuristic_Car.obj",
         "Lightbulb/energy_saver-cycles.mtl",
         "Lightbulb/energy_saver-cycles.obj",
         "Lightbulb/energy_saving_lightbulb.mtl",
@@ -55,7 +58,7 @@ CppApplication {
         "shader.h",
         "vertex_shader.vert",
     ]
-    cpp.cppFlags: ["-std=c++14","-O3"]
+    cpp.cppFlags: ["-std=c++14","-g"]
     cpp.dynamicLibraries:["assimp","SOIL","GLEW","glfw","GL","X11","pthread","Xrandr","Xi"]
     Group {     // Properties for the produced executable
         fileTagsFilter: product.type
